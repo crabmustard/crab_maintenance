@@ -1,0 +1,43 @@
+:root {
+  --crabred: #ad381e;
+  --crabblue: #216887;
+  --crabgrey: #3d4b41;
+  --crabbrown: #4b3026;
+  --crabyellow: #dbb727;
+}
+
+body {
+  background-color: var(--crabgrey);
+  margin: 0;
+  padding: 0;
+}
+.parent {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  }
+  
+  .crabhead { 
+    background-color: var(--crabred);
+    height:8rem;
+    width: 100%;
+    font-size: x-large;
+    color: var(--crabyellow);
+    border: 1px solid var(--crabbrown);}
+
+  .crabnav { 
+    background-color: var(--crabyellow);
+    height: 4rem;
+    width: 100%;
+ }
+
+  .crabshell { 
+    background-color: var(--crabblue);
+    height: fit-content; }
+
+  .crabfoot { 
+    background-color: var(--crabred);
+    width: 100%;
+    height: 8%; }
+
+

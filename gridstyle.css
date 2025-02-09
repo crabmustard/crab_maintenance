@@ -1,0 +1,128 @@
+:root {
+  --crabred: #ad381e;
+  --crabblue: #216887;
+  --crabgrey: #3d4b41;
+  --crabbrown: #4b3026;
+  --crabyellow: #dbb727;
+  --crabgreen: #447a15;
+}
+html {
+  height: 100%;
+}
+body {
+  height: 100%;
+}
+
+.layout {
+  height: 100%;
+  background-image: url("assets/bgcrab.jpg");
+  display: grid;
+  grid:
+    "crabhead crabhead crabhead" 150px
+    ". crabnav ." 50px
+    ". crabshell ." auto
+    "crabfoot crabfoot crabfoot" 50px /
+    50px auto 50px;
+  background-color: var(--crabgrey);
+}
+
+.crabhead {
+  grid-area: crabhead;
+  background-color: var(--crabblue);
+  /* border: 2px solid var(--crabgreen); */
+  display: grid;
+  grid:
+    "crablogo crablogotext" 150px /
+    150px auto;
+}
+.crablogo {
+  grid-area: crablogo;
+  height: 150px;
+  width: 150px;
+}
+.crablogotext {
+  width: 100%;
+  grid-area: crablogotext;
+}
+.crabnav {
+  grid-area: crabnav;
+  background-color: var(--crabyellow);
+}
+.crabshell {
+  grid-area: crabshell;
+  background-color: var(--crabbrown);
+  opacity: 80%;
+}
+.crabfoot {
+  grid-area: crabfoot;
+  background-color: var(--crabred);
+  display: grid;
+  grid:
+    "crabcompany crabinfo" 100% /
+    1fr 1fr;
+}
+.crabcompany {
+  grid-area: crabcompany;
+  padding-left: 20px;
+}
+.crabinfo {
+  grid-area: crabinfo;
+  text-align: end;
+  padding-right: 20px;
+}
+
+.navlist {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--crabbrown);
+  height: 100%;
+}
+
+.navlist li {
+  float: left;
+  height: 100%;
+}
+
+.navlist li a {
+  display: block;
+  color: var(--crabred);
+  text-align: center;
+  font-size: 30px;
+  text-shadow: 1px 1px 1px var(--crabgrey);
+  height: 100%;
+  padding: 5px 30px;
+  text-decoration: none;
+  border-right: 2px solid var(--crabblue);
+}
+
+.navlist a:hover {
+  background-color: var(--crabred);
+}
+
+
+.crabshell-grid {
+  height: 100%;
+  display: grid;
+  grid:
+  ". turnovers ." 34%
+  ". work-orders ." 33%
+  ". scheduled ." 33% /
+  10px auto 10px
+}
+.turnovers {
+  grid-area: turnovers;
+  background-color: var(--crabgreen);
+  height: 100%;
+}
+.work-orders {
+  grid-area: work-orders;
+  background-color: var(--crabred);
+  height: 100%;
+}
+.scheduled {
+  grid-area: scheduled;
+  background-color: var(--crabyellow);
+  height: 100%;
+}
