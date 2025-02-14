@@ -5,73 +5,64 @@
   --crabbrown: #4b3026;
   --crabyellow: #dbb727;
   --crabgreen: #447a15;
+  --crabsand: #9c8c62;
+  --crabwallgrey: #939e9a;
+  --crabwalltan: #a79e53;
 }
+
 html {
   height: 100%;
 }
+
 body {
   height: 100%;
+  margin: 0;
+  padding: 0;
+  background-size: 100%;
 }
 
 .layout {
   height: 100%;
-  background-image: url("assets/bgcrab.jpg");
+  background-color: var(--crabgrey);
   display: grid;
+  justify-content: center;
   grid:
-    "crabhead crabhead crabhead" 150px
-    ". crabnav ." 50px
-    ". crabshell ." auto
-    "crabfoot crabfoot crabfoot" 50px /
-    50px auto 50px;
+    "crabhead crabhead crabhead" 15% ". crabnav ." 5% ". crabhome ." auto "crabfoot crabfoot crabfoot" 5% / 10% auto 10%;
   background-color: var(--crabgrey);
 }
 
-.crabhead {
+.crab-header {
   grid-area: crabhead;
   background-color: var(--crabblue);
-  /* border: 2px solid var(--crabgreen); */
-  display: grid;
-  grid:
-    "crablogo crablogotext" 150px /
-    150px auto;
+  display: flex;
+  width: auto;
 }
-.crablogo {
-  grid-area: crablogo;
-  height: 150px;
-  width: 150px;
+
+.crab-header-logo {
+  height: 100%;
 }
-.crablogotext {
-  width: 100%;
-  grid-area: crablogotext;
+
+.crab-header-text {
+  flex-grow: 1;
+  font-size: xx-large;
+  text-align: center;
 }
-.crabnav {
+
+.crab-header-company {
+  font-size: xx-large;
+  font-weight: 1000;
+}
+
+.crab-header-division {
+  font-size: x-large;
+}
+
+.crab-nav {
   grid-area: crabnav;
   background-color: var(--crabyellow);
 }
-.crabshell {
-  grid-area: crabshell;
-  background-color: var(--crabbrown);
-  opacity: 80%;
-}
-.crabfoot {
-  grid-area: crabfoot;
-  background-color: var(--crabred);
-  display: grid;
-  grid:
-    "crabcompany crabinfo" 100% /
-    1fr 1fr;
-}
-.crabcompany {
-  grid-area: crabcompany;
-  padding-left: 20px;
-}
-.crabinfo {
-  grid-area: crabinfo;
-  text-align: end;
-  padding-right: 20px;
-}
 
-.navlist {
+.crab-nav-list {
   list-style-type: none;
   margin: 0;
   padding: 0;
@@ -80,49 +71,157 @@ body {
   height: 100%;
 }
 
-.navlist li {
+.crab-nav-list li {
   float: left;
   height: 100%;
-}
-
-.navlist li a {
-  display: block;
-  color: var(--crabred);
-  text-align: center;
-  font-size: 30px;
-  text-shadow: 1px 1px 1px var(--crabgrey);
-  height: 100%;
-  padding: 5px 30px;
-  text-decoration: none;
   border-right: 2px solid var(--crabblue);
 }
 
-.navlist a:hover {
-  background-color: var(--crabred);
+.crab-nav-list li a {
+  display: block;
+  color: var(--crabred);
+  text-align: center;
+  font-size: xx-large;
+  height: 100%;
+  padding: 5px 30px;
+  text-decoration: none;
 }
 
+.crab-nav-list li:last-child {
+  border-right: none;
+}
 
-.crabshell-grid {
+.crab-nav-list a:hover {
+  background-color: var(--crabred);
+}
+.crab-home {
+  grid-area: crabhome;
+  background-color: var(--crabbrown);
+  opacity: 80%;
   height: 100%;
   display: grid;
   grid:
-  ". turnovers ." 34%
-  ". work-orders ." 33%
-  ". scheduled ." 33% /
-  10px auto 10px
+    ". turnovers ." 20% ". work-orders ." auto ". ptacs ." 15% / 10px auto 10px;
 }
+
+
+.crab-footer {
+  grid-area: crabfoot;
+  background-color: var(--crabred);
+  display: flex;
+}
+
+.crab-footer-company {
+  padding-left: 10px;
+}
+
+.crab-footer-info {
+  margin-left: auto;
+  text-align: end;
+  padding-right: 10px;
+}
+
+
+
 .turnovers {
   grid-area: turnovers;
-  background-color: var(--crabgreen);
+  background-color: var(--crabgrey);
   height: 100%;
+  display: block flex;
+  flex-wrap: wrap;
+}
+
+.roomturnover {
+  width: 15%;
+  margin: 0 0 0 5px;
+  border: 1px solid var(--crabsand);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.room-paint-grey {
+  width: 25px;
+  height: 25px;
+  background-color: var(--crabwallgrey);
+}
+
+.room-paint-tan {
+  width: 25px;
+  height: 25px;
+  background-color: var(--crabwalltan);
+}
+
+.crab-tickets {
+    grid-area: crabhome;
+    background-color: var(--crabbrown);
+    opacity: 80%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  
+}
+
+.crab-tickets-buttons {
+  width: 100%;
+  display: block flex;
+  justify-content: space-around;
+}
+
+.crab-ticket {
+  width: auto;
+  background-color: var(--crabyellow);
+  
+}
+
+.crab-ticket th {
+  background-color: var(--crabyellow);
+  border: 3px double var(--crabgrey);
+  font-size: x-large;
+  padding: 5px 10px;
+}
+
+.crab-ticket td {
+  background-color: var(--crabsand);
+  border: 2px double;
+  padding: 2px;
+  font-size: large;
 }
 .work-orders {
   grid-area: work-orders;
   background-color: var(--crabred);
-  height: 100%;
 }
-.scheduled {
-  grid-area: scheduled;
+
+.work-orders th {
   background-color: var(--crabyellow);
+  border: 3px double var(--crabgrey);
+  font-size: x-large;
+  padding: 5px 10px;
+}
+
+.work-orders td {
+  background-color: var(--crabsand);
+  border: 2px double;
+  padding: 2px;
+  font-size: large;
+}
+
+.ptac-status {
+  grid-area: ptacs;
   height: 100%;
+  background-color: var(--crabyellow);
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.ptac {
+  background-color: var(--crabgrey);
+  width: calc(100% / 10);
+  height: 20px;
+  margin: 1px;
+  text-align: center;
+}
+
+.tickets {
+  background-color: var(--crabsand);
 }
