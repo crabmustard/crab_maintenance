@@ -2,60 +2,43 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
-	"time"
+	"os"
 
 	"github.com/a-h/templ"
+	"github.com/joho/godotenv"
 )
 
-const (
-	PORT = ":8080"
-)
-
-type GlobalState struct {
-	Count int
+type crabConfig struct {
+	port      string
+	stuffRoot string
 }
 
-var global GlobalState
-
-func getHandler(w http.ResponseWriter, r *http.Request) {
-	component := page(global.Count, 0)
-	component.Render(r.Context(), w)
-}
-
-func postHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-
-	if r.Form.Has("global") {
-		global.Count++
-	}
-
-	getHandler(w, r)
-}
-
-type NowHandler struct {
-	Now func() time.Time
-}
-
-func NewNowHandler(now func() time.Time) NowHandler {
-	return NowHandler{Now: now}
-}
-
-func (nh NowHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	timeComponent(nh.Now()).Render(r.Context(), w)
-}
+var cfg crabConfig
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
-			postHandler(w, r)
-			return
-		}
-		getHandler(w, r)
-	})
-	http.Handle("/time", NewNowHandler(time.Now))
-	http.Handle("/404", templ.Handler(notFoundComponent(), templ.WithStatus(http.StatusNotFound)))
+	godotenv.Load(".env")
 
-	fmt.Printf("listenning on port %s\n", PORT)
-	http.ListenAndServe(PORT, nil)
+	cfg.stuffRoot = os.Getenv("STUFF_ROOT")
+	if cfg.stuffRoot == "" {
+		log.Fatal("STUFF_ROOT env variable not set")
+	}
+	cfg.port = os.Getenv("PORT")
+	if cfg.port == "" {
+		log.Fatal("PORT env variable not set")
+	}
+	mux := http.NewServeMux()
+	stuffHandler := http.StripPrefix("/stuff", http.FileServer(http.Dir(cfg.stuffRoot)))
+	mux.Handle("/stuff/", stuffHandler)
+	mux.Handle("/", templ.Handler(homePage()))
+	mux.Handle("/tickets", templ.Handler(ticketPage()))
+
+	srv := &http.Server{
+		Addr:    ":" + cfg.port,
+		Handler: mux,
+	}
+
+	fmt.Printf("listenning on port %s\n", cfg.port)
+	log.Fatal(srv.ListenAndServe())
 }
