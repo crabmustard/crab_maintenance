@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -21,7 +22,8 @@ type crabConfig struct {
 }
 
 var cfg crabConfig
-var red templ.Component
+
+var numRooms int64 = 25
 
 func main() {
 	godotenv.Load(".env")
@@ -41,8 +43,37 @@ func main() {
 	dbQueries := database.New(db)
 	cfg.db = dbQueries
 
+	ptacCount, err := cfg.db.GetPtacCount(context.Background())
+	if err != nil {
+		log.Fatal("error with inital ptac count")
+	}
+	log.Printf("ptac count inital: %d", ptacCount)
+
+	err = cfg.db.ClearPtacList(context.Background())
+	if err != nil {
+		log.Fatal("error clearing db")
+	}
+
+	ptacCount, err = cfg.db.GetPtacCount(context.Background())
+	if err != nil {
+		log.Fatal("error with inital ptac count")
+	}
+	log.Printf("ptac count should be 0: %d", ptacCount)
+
+	err = createPtacList(numRooms)
+	if err != nil {
+		log.Fatal("error making ptac list")
+	}
+
+	// Checks that the right amount of rooms are in database, move to test later
+	ptacCount, err = cfg.db.GetPtacCount(context.Background())
+	if (err != nil) || (ptacCount != numRooms) {
+		log.Fatal("error with ptac count")
+	}
+	log.Printf("ptac count end: %d", ptacCount)
+
 	mux := http.NewServeMux()
-	mux.Handle("/", templ.Handler(indexPage()))
+	mux.Handle("/", templ.Handler(ptacList()))
 	stuffHandler := http.StripPrefix("/stuff", http.FileServer(http.Dir(cfg.stuffRoot)))
 	mux.Handle("/stuff/", stuffHandler)
 
