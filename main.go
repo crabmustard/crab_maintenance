@@ -23,7 +23,7 @@ type crabConfig struct {
 
 var cfg crabConfig
 
-var numRooms int64 = 25
+var numRooms int64 = 40
 
 func main() {
 	godotenv.Load(".env")

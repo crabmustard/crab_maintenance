@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
-	"time"
 
 	"github.com/crabmustard/crab_maintenance/database"
 )
@@ -18,11 +18,16 @@ func createPtacList(numRooms int64) error {
 	for room := range numRooms {
 		brandIndex := rand.Intn(3)
 		modelsIndex := rand.Intn(3)
+		year := (2025 - rand.Intn(3))
+		month := rand.Intn(12)
+		day := rand.Intn(30)
+		lastServiceString := fmt.Sprintf("%d-%d-%d", month, day, year)
+
 		pt := database.CreatePtacParams{
-			Room:        int64(room),
+			Room:        int64(room + 1),
 			Brand:       brands[brandIndex],
 			Model:       models[modelsIndex],
-			LastService: time.Now().Unix(),
+			LastService: lastServiceString,
 		}
 		_, err := cfg.db.CreatePtac(context.Background(), pt)
 		if err != nil {
