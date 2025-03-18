@@ -17,18 +17,18 @@ import (
 
 type crabConfig struct {
 	port      string
-	stuffRoot string
+	filesRoot string
 	db        *database.Queries
 }
 
 var cfg crabConfig
 
-var numRooms int64 = 40
+var numRooms int64 = 159
 
 func main() {
 	godotenv.Load(".env")
-	cfg.stuffRoot = os.Getenv("STUFF_ROOT")
-	if cfg.stuffRoot == "" {
+	cfg.filesRoot = os.Getenv("FILES_ROOT")
+	if cfg.filesRoot == "" {
 		log.Fatal("STUFF_ROOT env variable not set")
 	}
 	cfg.port = os.Getenv("PORT")
@@ -60,7 +60,7 @@ func main() {
 	}
 	log.Printf("ptac count should be 0: %d", ptacCount)
 
-	err = createPtacList(numRooms)
+	ptacs, err := createPtacList(numRooms)
 	if err != nil {
 		log.Fatal("error making ptac list")
 	}
@@ -73,8 +73,8 @@ func main() {
 	log.Printf("ptac count end: %d", ptacCount)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", templ.Handler(ptacList()))
-	stuffHandler := http.StripPrefix("/stuff", http.FileServer(http.Dir(cfg.stuffRoot)))
+	mux.Handle("/", templ.Handler(ptacList(ptacs)))
+	stuffHandler := http.StripPrefix("/stuff", http.FileServer(http.Dir(cfg.filesRoot)))
 	mux.Handle("/stuff/", stuffHandler)
 
 	srv := &http.Server{

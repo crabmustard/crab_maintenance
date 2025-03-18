@@ -30,7 +30,7 @@ RETURNING room, brand, model, last_service
 `
 
 type CreatePtacParams struct {
-	Room        int64  `json:"room"`
+	Room        string `json:"room"`
 	Brand       string `json:"brand"`
 	Model       string `json:"model"`
 	LastService string `json:"last_service"`
@@ -89,7 +89,7 @@ const getPtac = `-- name: GetPtac :one
 SELECT room, brand, model, last_service FROM ptacs WHERE room = ?
 `
 
-func (q *Queries) GetPtac(ctx context.Context, room int64) (Ptac, error) {
+func (q *Queries) GetPtac(ctx context.Context, room string) (Ptac, error) {
 	row := q.db.QueryRowContext(ctx, getPtac, room)
 	var i Ptac
 	err := row.Scan(
