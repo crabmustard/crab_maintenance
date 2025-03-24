@@ -6,17 +6,24 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type ptacCount struct {
-	count  int
-	status int
-	err    error
+type roomModel struct {
+	choices  []string
+	cursor   int
+	selected map[int]struct{}
 }
 
-func (pt ptacCount) Init() tea.Cmd {
+func initialRoomModel() roomModel {
+	return roomModel{
+		choices:  []string{"111", "122", "124", "555"},
+		selected: make(map[int]struct{}),
+	}
+}
+
+func (pt roomModel) Init() tea.Cmd {
 	return nil
 }
 
-func (pt ptacCount) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (pt roomModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	// Is it a key press?
@@ -50,6 +57,7 @@ func (pt ptacCount) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				pt.selected[pt.cursor] = struct{}{}
 			}
+			return initialPtacModel(), initialPtacModel().loadPtacs
 		}
 	}
 
@@ -58,8 +66,8 @@ func (pt ptacCount) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return pt, nil
 }
 
-func (pt ptacCount) View() string {
-	s := "Ptac Status List\n\n"
+func (pt roomModel) View() string {
+	s := "Room Status List\n\n"
 
 	for i, choice := range pt.choices {
 		// what choice is highlighted

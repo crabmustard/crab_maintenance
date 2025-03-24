@@ -1,31 +1,41 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/crabmustard/crab_maintenance/database"
 )
 
 type ptacModel struct {
-	choices  []string
+	choices  []database.Ptac
 	cursor   int
 	selected map[int]struct{}
 }
 
+type foundPtacs struct {
+	ptacs []database.Ptac
+}
+
 func initialPtacModel() ptacModel {
 	return ptacModel{
-		choices:  []string{"trane", "amana", "hotpoint", "distinctions"},
+		choices:  []database.Ptac{},
 		selected: make(map[int]struct{}),
 	}
 }
 
 func (pt ptacModel) Init() tea.Cmd {
-	return nil
+	return pt.loadPtacs
 }
 
 func (pt ptacModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
+	case foundPtacs:
+		pt.choices = msg.ptacs
+		return pt, nil
 	// Is it a key press?
 	case tea.KeyMsg:
 
@@ -57,6 +67,7 @@ func (pt ptacModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				pt.selected[pt.cursor] = struct{}{}
 			}
+			return initialRoomModel(), nil
 		}
 	}
 
@@ -79,9 +90,21 @@ func (pt ptacModel) View() string {
 		if _, ok := pt.selected[i]; ok {
 			checked = "x"
 		}
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+		s += fmt.Sprintf("%s [%s] %s - %s\t", cursor, checked, choice.Room, choice.LastService)
+		if i%4 == 3 {
+			s += "\n"
+		}
 	}
 
 	s += "\nPress q to quit\n"
 	return s
+}
+
+func (pt ptacModel) loadPtacs() tea.Msg {
+
+	ptacsDb, err := cfg.db.GetAllPtac(context.Background())
+	if err != nil {
+		log.Fatal("error with initial ptac model")
+	}
+	return foundPtacs{ptacs: ptacsDb}
 }
