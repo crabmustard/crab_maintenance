@@ -1,92 +1,64 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
 
-const maxWidth = 80
-
-var (
-	red    = lipgloss.AdaptiveColor{Light: "#FE5F86", Dark: "#FE5F86"}
-	indigo = lipgloss.AdaptiveColor{Light: "#5A56E0", Dark: "#7571F9"}
-	green  = lipgloss.AdaptiveColor{Light: "#02BA84", Dark: "#02BF87"}
-)
-
-type Styles struct {
-	Base,
-	HeaderText,
-	Status,
-	StatusHeader,
-	Highlight,
-	ErrorHeaderText,
-	Help lipgloss.Style
-}
-
-func NewStyles(lg *lipgloss.Renderer) *Styles {
-	s := Styles{}
-	s.Base = lg.NewStyle().
-		Padding(1, 4, 0, 1)
-	s.HeaderText = lg.NewStyle().
-		Foreground(indigo).
-		Bold(true).
-		Padding(0, 1, 0, 2)
-	s.Status = lg.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(indigo).
-		PaddingLeft(1).
-		MarginTop(1)
-	s.StatusHeader = lg.NewStyle().
-		Foreground(green).
-		Bold(true)
-	s.Highlight = lg.NewStyle().
-		Foreground(lipgloss.Color("212"))
-	s.ErrorHeaderText = s.HeaderText.
-		Foreground(red)
-	s.Help = lg.NewStyle().
-		Foreground(lipgloss.Color("240"))
-	return &s
-}
-
-type state int
-
-const (
-	statusNormal state = iota
-	stateDone
-)
-
-type Model struct {
-	state  state
+type addPtacForm struct {
+	// state  state
 	lg     *lipgloss.Renderer
 	styles *Styles
 	form   *huh.Form
 	width  int
 }
 
-func NewModel() Model {
-	m := Model{width: maxWidth}
+func checkRoomNumber(roomstring string) error {
+	if len(roomstring) == 3 {
+		roomint, err := strconv.Atoi(roomstring)
+		if err != nil {
+			return errors.New("room number, not room letters")
+		}
+		if (101 <= roomint && roomint <= 132) || (201 <= roomint && roomint <= 236) ||
+			(301 <= roomint && roomint <= 332) || (401 <= roomint && roomint <= 427) {
+			return nil
+		} else {
+			return errors.New("no room by that number")
+		}
+	}
+	return errors.New("enter 3 digit room number")
+}
+
+func updatePtacForm() addPtacForm {
+	m := addPtacForm{width: maxWidth}
 	m.lg = lipgloss.DefaultRenderer()
-	m.styles = NewStyles(m.lg)
+	m.styles = maintStyles(m.lg)
 
 	m.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("room number").
-				Prompt(">>").
-				Key("room"),
+				Prompt("> ").
+				Key("room").
+				CharLimit(3).
+				Validate(checkRoomNumber),
+
 			huh.NewSelect[string]().
 				Key("brand").
-				Options(huh.NewOptions("Amana", "Tane", "Hotpoint", "Distinctions")...).
+				Options(huh.NewOptions("Amana", "Trane", "Hotpoint", "Distinctions")...).
 				Title("Ptac Brand"),
 
 			huh.NewSelect[string]().
 				Key("model").
 				Options(huh.NewOptions("12000e", "12000h", "15000e", "15000h")...).
-				Title("Ptac Model model"),
+				Title("Ptac Model"),
 
 			huh.NewConfirm().
 				Key("done").
@@ -104,10 +76,11 @@ func NewModel() Model {
 		WithWidth(45).
 		WithShowHelp(false).
 		WithShowErrors(false)
+	m.Init()
 	return m
 }
 
-func (m Model) Init() tea.Cmd {
+func (m addPtacForm) Init() tea.Cmd {
 	return m.form.Init()
 }
 
@@ -118,7 +91,7 @@ func min(x, y int) int {
 	return x
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m addPtacForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = min(msg.Width, maxWidth) - m.styles.Base.GetHorizontalFrameSize()
@@ -128,6 +101,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Interrupt
 		case "esc", "q":
 			return m, tea.Quit
+		case "b":
+			if m.form.State == huh.StateCompleted {
+				return updatePtacForm(), nil
+			}
+		case "m":
+			if m.form.State == huh.StateCompleted {
+				return InitalMenu(), nil
+			}
 		}
 	}
 
@@ -142,20 +123,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.form.State == huh.StateCompleted {
 		// Quit when the form is done.
-		cmds = append(cmds, tea.Quit)
+		// cmds = append(cmds, tea.Quit)
+		return m, nil
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
+func (m addPtacForm) View() string {
 	s := m.styles
 
 	switch m.form.State {
 	case huh.StateCompleted:
 		var b strings.Builder
-		fmt.Fprintf(&b, "Congratulations, you’ve added a  new ptac!!!\n Room: %s!\n", m.form.GetString("room"))
-		fmt.Fprintf(&b, "Ptac Info:\nBrand: %s \tModel: %s\nPlease tell james to clean it.",
+		fmt.Fprintf(&b, "Congratulations, you’ve added a  new ptac!!!\nRoom: %s\n", m.form.GetString("room"))
+		fmt.Fprintf(&b, "Brand: %s \tModel: %s\n\nPlease tell james to clean it.\n\nb - add ptac\nm - menu",
 			m.form.GetString("brand"), m.form.GetString("model"))
 		return s.Status.Margin(0, 1).Padding(1, 2).Width(48).Render(b.String()) + "\n"
 	default:
@@ -168,19 +150,19 @@ func (m Model) View() string {
 		var status string
 		{
 			var (
-				buildInfo = "(None)"
-				room      string
+				room         string
+				brand        string
+				model        string
+				last_service string
 			)
 
-			if m.form.GetString("room") != "" {
-				buildInfo = fmt.Sprintf("Room: %s\n", m.form.GetString("room"))
-			}
-			if m.form.GetString("brand") != "" {
-				buildInfo += fmt.Sprintf("Brand: %s\n", m.form.GetString("brand"))
-			}
-			if m.form.GetString("model") != "" {
-				buildInfo += fmt.Sprintf("Model: %s\n", m.form.GetString("model"))
-			}
+			room = fmt.Sprintf("Room: %s\n", m.form.GetString("room"))
+
+			brand = fmt.Sprintf("Brand: %s\n", m.form.GetString("brand"))
+
+			model = fmt.Sprintf("Model: %s\n", m.form.GetString("model"))
+
+			last_service = time.Now().Format("2006-01-02")
 
 			const statusWidth = 28
 			statusMarginLeft := m.width - statusWidth - lipgloss.Width(form) - s.Status.GetMarginRight()
@@ -190,7 +172,9 @@ func (m Model) View() string {
 				MarginLeft(statusMarginLeft).
 				Render(s.StatusHeader.Render("Current Build") + "\n" +
 					room +
-					buildInfo)
+					brand +
+					model +
+					last_service)
 		}
 
 		errors := m.form.Errors()
@@ -209,7 +193,7 @@ func (m Model) View() string {
 	}
 }
 
-func (m Model) errorView() string {
+func (m addPtacForm) errorView() string {
 	var s string
 	for _, err := range m.form.Errors() {
 		s += err.Error()
@@ -217,7 +201,7 @@ func (m Model) errorView() string {
 	return s
 }
 
-func (m Model) appBoundaryView(text string) string {
+func (m addPtacForm) appBoundaryView(text string) string {
 	return lipgloss.PlaceHorizontal(
 		m.width,
 		lipgloss.Left,
@@ -227,7 +211,7 @@ func (m Model) appBoundaryView(text string) string {
 	)
 }
 
-func (m Model) appErrorBoundaryView(text string) string {
+func (m addPtacForm) appErrorBoundaryView(text string) string {
 	return lipgloss.PlaceHorizontal(
 		m.width,
 		lipgloss.Left,
