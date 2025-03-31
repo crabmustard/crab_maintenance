@@ -14,8 +14,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const maxWidth = 80
-
 type crabConfig struct {
 	port      string
 	filesRoot string

@@ -22,26 +22,27 @@ var (
 	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 )
 
-type item struct {
-	room  string
-	brand string
-	model string
+type ptacItem struct {
+	room         string
+	brand        string
+	model        string
+	last_service string
 }
 
-func (i item) FilterValue() string { return i.room }
+func (i ptacItem) FilterValue() string { return i.last_service }
 
-type itemDelegate struct{}
+type ptacItemDelegate struct{}
 
-func (d itemDelegate) Height() int                             { return 1 }
-func (d itemDelegate) Spacing() int                            { return 0 }
-func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(item)
+func (d ptacItemDelegate) Height() int                             { return 1 }
+func (d ptacItemDelegate) Spacing() int                            { return 0 }
+func (d ptacItemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+func (d ptacItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+	i, ok := listItem.(ptacItem)
 	if !ok {
 		return
 	}
 
-	str := fmt.Sprintf("%5s  -%8s  -%8s", i.room, i.brand, i.model)
+	str := fmt.Sprintf("%5s  -%10s  -%10s  -%15s", i.room, i.brand, i.model, i.last_service)
 
 	fn := itemStyle.Render
 	if index == m.Index() {
@@ -53,17 +54,17 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	fmt.Fprint(w, fn(str))
 }
 
-type model struct {
+type ptacListModel struct {
 	list     list.Model
 	choice   string
 	quitting bool
 }
 
-func (m model) Init() tea.Cmd {
+func (m ptacListModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m ptacListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.list.SetWidth(msg.Width)
@@ -76,7 +77,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "enter":
-			i, ok := m.list.SelectedItem().(item)
+			i, ok := m.list.SelectedItem().(ptacItem)
 			if ok {
 				m.choice = string(i.room)
 			}
@@ -89,7 +90,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m model) View() string {
+func (m ptacListModel) View() string {
 	if m.choice != "" {
 		return quitTextStyle.Render(fmt.Sprintf("%s? Sounds good to me.", m.choice))
 	}
@@ -99,27 +100,30 @@ func (m model) View() string {
 	return "\n" + m.list.View()
 }
 
-func newPtacList() model {
-	ptacs, _ := cfg.db.GetAllPtac(context.Background())
+func newPtacList() ptacListModel {
+	ptacs, _ := cfg.db.GetPtacsToClean(context.Background())
 	items := []list.Item{}
 	for _, p := range ptacs {
-		i := item{
-			room:  p.Room,
-			brand: p.Brand,
-			model: p.Model,
+		i := ptacItem{
+			room:         p.Room,
+			brand:        p.Brand,
+			model:        p.Model,
+			last_service: p.LastService,
 		}
 		items = append(items, i)
 	}
 
 	const defaultWidth = 20
 
-	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "What do you want for dinner?"
-	l.SetShowStatusBar(false)
+	l := list.New(items, ptacItemDelegate{}, defaultWidth, listHeight)
+	l.Title = "What are we doing right not?"
+	l.SetShowStatusBar(true)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
 	l.Styles.HelpStyle = helpStyle
 
-	return model{list: l}
+	return ptacListModel{list: l}
 }
+
+func newPtacCleaningList(count int) ptacListModel

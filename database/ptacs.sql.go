@@ -149,7 +149,7 @@ const getPtacsToClean = `-- name: GetPtacsToClean :many
 ;
 
 SELECT room, brand, model, last_service FROM ptacs
-ORDER BY last_service DESC
+ORDER BY last_service ASC
 LIMIT ?
 `
 

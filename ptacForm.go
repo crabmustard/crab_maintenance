@@ -12,8 +12,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const maxWidth = 80
+
 type addPtacForm struct {
-	// state  state
 	lg     *lipgloss.Renderer
 	styles *Styles
 	form   *huh.Form
@@ -37,9 +38,10 @@ func checkRoomNumber(roomstring string) error {
 }
 
 func updatePtacForm() addPtacForm {
-	m := addPtacForm{width: maxWidth}
+	m := addPtacForm{}
 	m.lg = lipgloss.DefaultRenderer()
 	m.styles = maintStyles(m.lg)
+	m.width = maxWidth - m.styles.Base.GetHorizontalFrameSize()
 
 	m.form = huh.NewForm(
 		huh.NewGroup(
@@ -73,7 +75,7 @@ func updatePtacForm() addPtacForm {
 				Negative("Wait, no"),
 		),
 	).
-		WithWidth(45).
+		WithWidth(40).
 		WithShowHelp(false).
 		WithShowErrors(false)
 	m.Init()
@@ -84,17 +86,11 @@ func (m addPtacForm) Init() tea.Cmd {
 	return m.form.Init()
 }
 
-func min(x, y int) int {
-	if x > y {
-		return y
-	}
-	return x
-}
-
 func (m addPtacForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.width = min(msg.Width, maxWidth) - m.styles.Base.GetHorizontalFrameSize()
+		m.width = maxWidth - m.styles.Base.GetHorizontalFrameSize()
+		fmt.Println(m.width)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
@@ -167,7 +163,7 @@ func (m addPtacForm) View() string {
 			const statusWidth = 28
 			statusMarginLeft := m.width - statusWidth - lipgloss.Width(form) - s.Status.GetMarginRight()
 			status = s.Status.
-				Height(lipgloss.Height(form)).
+				Height(lipgloss.Height(form) - 5).
 				Width(statusWidth).
 				MarginLeft(statusMarginLeft).
 				Render(s.StatusHeader.Render("Current Build") + "\n" +
@@ -178,7 +174,7 @@ func (m addPtacForm) View() string {
 		}
 
 		errors := m.form.Errors()
-		header := m.appBoundaryView("Charm Employment Application")
+		header := m.appBoundaryView("Crab Mustard Properties Ptac Service")
 		if len(errors) > 0 {
 			header = m.appErrorBoundaryView(m.errorView())
 		}
@@ -206,8 +202,8 @@ func (m addPtacForm) appBoundaryView(text string) string {
 		m.width,
 		lipgloss.Left,
 		m.styles.HeaderText.Render(text),
-		lipgloss.WithWhitespaceChars("/"),
-		lipgloss.WithWhitespaceForeground(indigo),
+		lipgloss.WithWhitespaceChars("% o "),
+		lipgloss.WithWhitespaceForeground(crabGreen),
 	)
 }
 

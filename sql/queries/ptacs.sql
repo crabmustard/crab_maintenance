@@ -17,7 +17,7 @@ SELECT * FROM ptacs
 
 -- name: GetPtacsToClean :many
 SELECT * FROM ptacs
-ORDER BY last_service DESC
+ORDER BY last_service ASC
 LIMIT ?;
 
 -- name: GetPtacCount :one

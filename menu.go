@@ -63,7 +63,7 @@ func (menu menuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				delete(menu.selected, menu.cursor)
 				switch menu.cursor {
 				case 0:
-					return newPtacForm(), nil
+					return updatePtacForm(), nil
 				case 1:
 					return newPtacList(), nil
 				default:
@@ -99,5 +99,5 @@ func (menu menuModel) View() string {
 	}
 
 	s += "\nPress q to quit\n"
-	return menu.styles.Status.Render(s)
+	return menu.styles.Menu.Render(s)
 }

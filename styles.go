@@ -13,6 +13,7 @@ var (
 
 type Styles struct {
 	Base,
+	Menu,
 	HeaderText,
 	Status,
 	StatusHeader,
@@ -26,15 +27,18 @@ type Styles struct {
 
 func maintStyles(lg *lipgloss.Renderer) *Styles {
 	s := Styles{}
-	s.Base = lg.NewStyle().
-		Padding(1, 4, 0, 1)
-	s.HeaderText = lg.NewStyle().
-		Foreground(indigo).
-		Bold(true).
-		Padding(0, 1, 0, 2)
+	s.Base = lg.NewStyle().Padding(1, 4, 0, 1)
+	s.HeaderText = lg.NewStyle().Foreground(indigo).Bold(true).Padding(0, 1, 0, 2)
 	s.Status = lg.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(crabGreen).
+		Background(crabRed).
+		PaddingLeft(1).
+		MarginTop(2)
+	s.Menu = lg.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(crabGreen).
+		Background(crabYellow).
 		PaddingLeft(1).
 		MarginTop(2)
 	s.StatusHeader = lg.NewStyle().
