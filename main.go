@@ -5,30 +5,27 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
-	"github.com/a-h/templ"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/crabmustard/crab_maintenance/database"
-
 	"github.com/joho/godotenv"
+
 	_ "modernc.org/sqlite"
 )
 
 type crabConfig struct {
 	port      string
-	stuffRoot string
+	filesRoot string
 	db        *database.Queries
 }
 
 var cfg crabConfig
 
-var numRooms int64 = 40
-
 func main() {
 	godotenv.Load(".env")
-	cfg.stuffRoot = os.Getenv("STUFF_ROOT")
-	if cfg.stuffRoot == "" {
+	cfg.filesRoot = os.Getenv("FILES_ROOT")
+	if cfg.filesRoot == "" {
 		log.Fatal("STUFF_ROOT env variable not set")
 	}
 	cfg.port = os.Getenv("PORT")
@@ -43,45 +40,28 @@ func main() {
 	dbQueries := database.New(db)
 	cfg.db = dbQueries
 
-	ptacCount, err := cfg.db.GetPtacCount(context.Background())
-	if err != nil {
-		log.Fatal("error with inital ptac count")
-	}
-	log.Printf("ptac count inital: %d", ptacCount)
-
 	err = cfg.db.ClearPtacList(context.Background())
 	if err != nil {
 		log.Fatal("error clearing db")
 	}
 
-	ptacCount, err = cfg.db.GetPtacCount(context.Background())
-	if err != nil {
-		log.Fatal("error with inital ptac count")
+	createPtacList()
+
+	program := tea.NewProgram(InitalMenu())
+	if _, err := program.Run(); err != nil {
+		fmt.Printf("Error encountered %v", err)
+		os.Exit(1)
 	}
-	log.Printf("ptac count should be 0: %d", ptacCount)
+	// mux := http.NewServeMux()
+	// mux.Handle("/", templ.Handler(ptacList(ptacs)))
+	// stuffHandler := http.StripPrefix("/stuff", http.FileServer(http.Dir(cfg.filesRoot)))
+	// mux.Handle("/stuff/", stuffHandler)
 
-	err = createPtacList(numRooms)
-	if err != nil {
-		log.Fatal("error making ptac list")
-	}
+	// srv := &http.Server{
+	// 	Addr:    ":" + cfg.port,
+	// 	Handler: mux,
+	// }
 
-	// Checks that the right amount of rooms are in database, move to test later
-	ptacCount, err = cfg.db.GetPtacCount(context.Background())
-	if (err != nil) || (ptacCount != numRooms) {
-		log.Fatal("error with ptac count")
-	}
-	log.Printf("ptac count end: %d", ptacCount)
-
-	mux := http.NewServeMux()
-	mux.Handle("/", templ.Handler(ptacList()))
-	stuffHandler := http.StripPrefix("/stuff", http.FileServer(http.Dir(cfg.stuffRoot)))
-	mux.Handle("/stuff/", stuffHandler)
-
-	srv := &http.Server{
-		Addr:    ":" + cfg.port,
-		Handler: mux,
-	}
-
-	fmt.Printf("listenning on port %s\n", cfg.port)
-	log.Fatal(srv.ListenAndServe())
+	// fmt.Printf("listenning on port %s\n", cfg.port)
+	// log.Fatal(srv.ListenAndServe())
 }

@@ -30,7 +30,7 @@ RETURNING room, brand, model, last_service
 `
 
 type CreatePtacParams struct {
-	Room        int64  `json:"room"`
+	Room        string `json:"room"`
 	Brand       string `json:"brand"`
 	Model       string `json:"model"`
 	LastService string `json:"last_service"`
@@ -55,6 +55,7 @@ func (q *Queries) CreatePtac(ctx context.Context, arg CreatePtacParams) (Ptac, e
 
 const getAllPtac = `-- name: GetAllPtac :many
 SELECT room, brand, model, last_service FROM ptacs
+ORDER BY room
 `
 
 func (q *Queries) GetAllPtac(ctx context.Context) ([]Ptac, error) {
@@ -85,12 +86,23 @@ func (q *Queries) GetAllPtac(ctx context.Context) ([]Ptac, error) {
 	return items, nil
 }
 
-const getPtac = `-- name: GetPtac :one
+const getPtacCount = `-- name: GetPtacCount :one
+SELECT COUNT(room) FROM ptacs
+`
+
+func (q *Queries) GetPtacCount(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getPtacCount)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getPtacRoom = `-- name: GetPtacRoom :one
 SELECT room, brand, model, last_service FROM ptacs WHERE room = ?
 `
 
-func (q *Queries) GetPtac(ctx context.Context, room int64) (Ptac, error) {
-	row := q.db.QueryRowContext(ctx, getPtac, room)
+func (q *Queries) GetPtacRoom(ctx context.Context, room string) (Ptac, error) {
+	row := q.db.QueryRowContext(ctx, getPtacRoom, room)
 	var i Ptac
 	err := row.Scan(
 		&i.Room,
@@ -101,13 +113,70 @@ func (q *Queries) GetPtac(ctx context.Context, room int64) (Ptac, error) {
 	return i, err
 }
 
-const getPtacCount = `-- name: GetPtacCount :one
-SELECT COUNT(room) FROM ptacs
+const getPtacsSorted = `-- name: GetPtacsSorted :many
+SELECT room, brand, model, last_service FROM ptacs
 `
 
-func (q *Queries) GetPtacCount(ctx context.Context) (int64, error) {
-	row := q.db.QueryRowContext(ctx, getPtacCount)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
+func (q *Queries) GetPtacsSorted(ctx context.Context) ([]Ptac, error) {
+	rows, err := q.db.QueryContext(ctx, getPtacsSorted)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ptac
+	for rows.Next() {
+		var i Ptac
+		if err := rows.Scan(
+			&i.Room,
+			&i.Brand,
+			&i.Model,
+			&i.LastService,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPtacsToClean = `-- name: GetPtacsToClean :many
+;
+
+SELECT room, brand, model, last_service FROM ptacs
+ORDER BY last_service ASC
+LIMIT ?
+`
+
+func (q *Queries) GetPtacsToClean(ctx context.Context, limit int64) ([]Ptac, error) {
+	rows, err := q.db.QueryContext(ctx, getPtacsToClean, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ptac
+	for rows.Next() {
+		var i Ptac
+		if err := rows.Scan(
+			&i.Room,
+			&i.Brand,
+			&i.Model,
+			&i.LastService,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

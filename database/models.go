@@ -5,7 +5,7 @@
 package database
 
 type Ptac struct {
-	Room        int64  `json:"room"`
+	Room        string `json:"room"`
 	Brand       string `json:"brand"`
 	Model       string `json:"model"`
 	LastService string `json:"last_service"`
