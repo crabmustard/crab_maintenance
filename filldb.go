@@ -25,7 +25,7 @@ func createPtacList() {
 		modelsIndex := rand.Intn(2)
 		year := (2024 - rand.Intn(3))
 		month := rand.Intn(12) + 1
-		day := rand.Intn(30) + 1
+		day := rand.Intn(25) + 1
 		lastServiceString := fmt.Sprintf("%d-%02d-%02d", year, month, day)
 
 		pt := database.CreatePtacParams{

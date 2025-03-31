@@ -66,6 +66,8 @@ func (menu menuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return updatePtacForm(), nil
 				case 1:
 					return newPtacList(), nil
+				case 2:
+					return newPtacCleaningList(), nil
 				default:
 					return menu, nil
 				}

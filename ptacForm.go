@@ -95,7 +95,9 @@ func (m addPtacForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c":
 			return m, tea.Interrupt
-		case "esc", "q":
+		case "esc":
+			return InitalMenu(), nil
+		case "q":
 			return m, tea.Quit
 		case "b":
 			if m.form.State == huh.StateCompleted {

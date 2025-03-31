@@ -4,14 +4,19 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-const listHeight = 25
+const (
+	listHeight   = 20
+	defaultWidth = 60
+)
 
 var (
 	titleStyle        = lipgloss.NewStyle().MarginLeft(2)
@@ -42,7 +47,7 @@ func (d ptacItemDelegate) Render(w io.Writer, m list.Model, index int, listItem 
 		return
 	}
 
-	str := fmt.Sprintf("%5s  -%10s  -%10s  -%15s", i.room, i.brand, i.model, i.last_service)
+	str := fmt.Sprintf("%5s  -%10s  -%10s  -  %s", i.room, i.brand, i.model, i.last_service)
 
 	fn := itemStyle.Render
 	if index == m.Index() {
@@ -58,6 +63,8 @@ type ptacListModel struct {
 	list     list.Model
 	choice   string
 	quitting bool
+	styles   *Styles
+	lg       *lipgloss.Renderer
 }
 
 func (m ptacListModel) Init() tea.Cmd {
@@ -75,6 +82,8 @@ func (m ptacListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			m.quitting = true
 			return m, tea.Quit
+		case "esc":
+			return InitalMenu(), nil
 
 		case "enter":
 			i, ok := m.list.SelectedItem().(ptacItem)
@@ -92,7 +101,7 @@ func (m ptacListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ptacListModel) View() string {
 	if m.choice != "" {
-		return quitTextStyle.Render(fmt.Sprintf("%s? Sounds good to me.", m.choice))
+		return quitTextStyle.Render(fmt.Sprintf("%s? Serviced.", m.choice))
 	}
 	if m.quitting {
 		return quitTextStyle.Render("Have a good day.")
@@ -101,23 +110,80 @@ func (m ptacListModel) View() string {
 }
 
 func newPtacList() ptacListModel {
-	ptacs, _ := cfg.db.GetPtacsToClean(context.Background())
+	lm := ptacListModel{}
+	ptacs, _ := cfg.db.GetAllPtac(context.Background())
+	lm.lg = lipgloss.DefaultRenderer()
+	lm.styles = maintStyles(lm.lg)
 	items := []list.Item{}
+	now := time.Now()
 	for _, p := range ptacs {
+		lsd := ""
+		then, err := time.Parse("2006-01-02", p.LastService)
+		if err != nil {
+			log.Fatal(err)
+		}
+		diff := now.Sub(then)
+		if diff > time.Duration(time.Hour*24*365*2) {
+			lsd += lm.styles.PtacRed.Render(p.LastService)
+		} else if diff > time.Duration(time.Hour*24*365) {
+			lsd += lm.styles.PtacYellow.Render(p.LastService)
+		} else {
+			lsd += lm.styles.PtacGreen.Render(p.LastService)
+		}
 		i := ptacItem{
 			room:         p.Room,
 			brand:        p.Brand,
 			model:        p.Model,
-			last_service: p.LastService,
+			last_service: lsd,
 		}
 		items = append(items, i)
 	}
 
-	const defaultWidth = 20
+	l := list.New(items, ptacItemDelegate{}, defaultWidth, listHeight)
+	l.Title = "Current Room Ptacs"
+	l.SetShowStatusBar(false)
+	l.SetFilteringEnabled(false)
+	l.Styles.Title = titleStyle
+	l.Styles.PaginationStyle = paginationStyle
+	l.Styles.HelpStyle = helpStyle
+	lm.list = l
+
+	return lm
+}
+
+func newPtacCleaningList() ptacListModel {
+	lm := ptacListModel{}
+	ptacs, _ := cfg.db.GetPtacsToClean(context.Background(), 10)
+	lm.lg = lipgloss.DefaultRenderer()
+	lm.styles = maintStyles(lm.lg)
+	items := []list.Item{}
+	now := time.Now()
+	for _, p := range ptacs {
+		lsd := ""
+		then, err := time.Parse("2006-01-02", p.LastService)
+		if err != nil {
+			log.Fatal(err)
+		}
+		diff := now.Sub(then)
+		if diff > time.Duration(time.Hour*24*365*2) {
+			lsd += lm.styles.PtacRed.Render(p.LastService)
+		} else if diff > time.Duration(time.Hour*24*365) {
+			lsd += lm.styles.PtacYellow.Render(p.LastService)
+		} else {
+			lsd += lm.styles.PtacGreen.Render(p.LastService)
+		}
+		i := ptacItem{
+			room:         p.Room,
+			brand:        p.Brand,
+			model:        p.Model,
+			last_service: lsd,
+		}
+		items = append(items, i)
+	}
 
 	l := list.New(items, ptacItemDelegate{}, defaultWidth, listHeight)
-	l.Title = "What are we doing right not?"
-	l.SetShowStatusBar(true)
+	l.Title = "Ptacs that need cleaning"
+	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
@@ -125,5 +191,3 @@ func newPtacList() ptacListModel {
 
 	return ptacListModel{list: l}
 }
-
-func newPtacCleaningList(count int) ptacListModel

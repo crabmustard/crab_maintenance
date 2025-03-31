@@ -50,5 +50,11 @@ func maintStyles(lg *lipgloss.Renderer) *Styles {
 		Foreground(red)
 	s.Help = lg.NewStyle().
 		Foreground(lipgloss.Color("240"))
+	s.PtacGreen = lg.NewStyle().
+		Foreground(crabGreen)
+	s.PtacRed = lg.NewStyle().
+		Foreground(crabRed)
+	s.PtacYellow = lg.NewStyle().
+		Foreground(crabYellow)
 	return &s
 }
