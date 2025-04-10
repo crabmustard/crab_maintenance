@@ -17,7 +17,7 @@ type menuModel struct {
 
 func InitalMenu() menuModel {
 	menu := menuModel{
-		choices:  []string{"Add Ptac", "Ptac List", "Due for Service"},
+		choices:  []string{"Service Ptac", "Ptac List", "Room Info"},
 		selected: make(map[int]struct{}),
 	}
 	menu.lg = lipgloss.DefaultRenderer()
@@ -58,26 +58,20 @@ func (menu menuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// The "enter" key and the spacebar (a literal space) toggle
 		// the selected state for the item that the cursor is pointing at.
 		case "enter", " ":
-			_, ok := menu.selected[menu.cursor]
-			if ok {
-				delete(menu.selected, menu.cursor)
-				switch menu.cursor {
-				case 0:
-					return updatePtacForm(), nil
-				case 1:
-					return newPtacList(), nil
-				case 2:
-					return newPtacCleaningList(), nil
-				default:
-					return menu, nil
-				}
-			} else {
-				menu.selected[menu.cursor] = struct{}{}
+			switch menu.cursor {
+			case 0:
+				return updatePtacForm(), nil
+			case 1:
+				return newPtacList(), nil
+			case 2:
+				return newPtacCleaningList(), nil
+			default:
+				return menu, nil
 			}
-			return menu, nil
-		}
-	}
 
+		}
+
+	}
 	// Return the updated model to the Bubble Tea runtime for processing.
 	// Note that we're not returning a command.
 	return menu, nil
@@ -92,12 +86,7 @@ func (menu menuModel) View() string {
 		if menu.cursor == i {
 			cursor = ">"
 		}
-		// what choice is selected
-		checked := " "
-		if _, ok := menu.selected[i]; ok {
-			checked = "x"
-		}
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+		s += fmt.Sprintf("%s - %s\n", cursor, choice)
 	}
 
 	s += "\nPress q to quit\n"

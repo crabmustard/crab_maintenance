@@ -47,7 +47,7 @@ func main() {
 
 	createPtacList()
 
-	program := tea.NewProgram(InitalMenu())
+	program := tea.NewProgram(NewPtacService())
 	if _, err := program.Run(); err != nil {
 		fmt.Printf("Error encountered %v", err)
 		os.Exit(1)

@@ -11,9 +11,6 @@ RETURNING *;
 -- name: GetPtacRoom :one
 SELECT * FROM ptacs WHERE room = ?;
 
--- name: GetPtacsSorted :many
-SELECT * FROM ptacs
-;
 
 -- name: GetPtacsToClean :many
 SELECT * FROM ptacs

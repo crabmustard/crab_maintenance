@@ -113,41 +113,7 @@ func (q *Queries) GetPtacRoom(ctx context.Context, room string) (Ptac, error) {
 	return i, err
 }
 
-const getPtacsSorted = `-- name: GetPtacsSorted :many
-SELECT room, brand, model, last_service FROM ptacs
-`
-
-func (q *Queries) GetPtacsSorted(ctx context.Context) ([]Ptac, error) {
-	rows, err := q.db.QueryContext(ctx, getPtacsSorted)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Ptac
-	for rows.Next() {
-		var i Ptac
-		if err := rows.Scan(
-			&i.Room,
-			&i.Brand,
-			&i.Model,
-			&i.LastService,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getPtacsToClean = `-- name: GetPtacsToClean :many
-;
-
 SELECT room, brand, model, last_service FROM ptacs
 ORDER BY last_service ASC
 LIMIT ?
